@@ -14,7 +14,7 @@ import java.net.InetSocketAddress;
 import java.util.Scanner;
 
 /**
- * @author Lars Mortensen
+ * @author Peter Christensen
  */
 public class FirstHtttpServer {
   static int port = 8080;
@@ -30,11 +30,15 @@ public class FirstHtttpServer {
     server.createContext("/files", new SimpleFileHandler());
     server.createContext("/pages", new RequestHandlerHandle());
     server.createContext("/headers", new RequestHandlerHeaders());
+    server.createContext("/parameters", new RequestHandlerParameter());
     server.setExecutor(null); // Use the default executor
     server.start();
     System.out.println("Server started, listening on port: "+port);
   }
-//Opgave 3
+  
+  
+  
+    //Opgave 3
     static class RequestHandlerHandle implements HttpHandler {
     String contentFolder = "public/";
     
@@ -54,19 +58,14 @@ public class FirstHtttpServer {
    }
  }
   static class RequestHandlerHeaders implements HttpHandler{
-
         @Override
         public void handle(HttpExchange he) throws IOException {
         }
-      
   }
-
   static class RequestHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange he) throws IOException {
-        
-        
-        
+
       String response = "<h1>Welcome to my very first almost home made Web Server :-)</h1>";
       StringBuilder sb = new StringBuilder();
       sb.append("<!DOCTYPE html>\n");
@@ -79,17 +78,48 @@ public class FirstHtttpServer {
       sb.append("<h2>Welcome to my very first home made Web Server :-)</h2>\n");
       sb.append("</body>\n");
       sb.append("</html>\n");
-      response = sb.toString();
-      
+      response = sb.toString();   
       response += "<br>"+"URI:"+he.getRequestURI();
-      
-      
-      
       Scanner scan = new Scanner(he.getRequestBody());
       while(scan.hasNext()){
           response += "<br/>" + scan.nextLine();
       }
       Headers h = he.getResponseHeaders();
+      h.add("Content-Type", "text/html");
+            
+      he.sendResponseHeaders(200, response.length());
+      try (PrintWriter pw = new PrintWriter(he.getResponseBody())) {
+        pw.print(response); //What happens if we use a println instead of print --> Explain
+      }
+      
+    }
+  }
+//opgave 4 get method post method
+  static class RequestHandlerParameter implements HttpHandler {
+
+    public void handle(HttpExchange he) throws IOException {
+
+      String response = "<h1>Welcome to my very first almost home made Web Server :-)</h1>";
+      StringBuilder sb = new StringBuilder();
+      sb.append("<!DOCTYPE html>\n");
+      sb.append("<html>\n");
+      sb.append("<head>\n");
+      sb.append("<title>My fancy Web Site</title>\n");
+      sb.append("<meta charset='UTF-8'>\n");
+      sb.append("</head>\n");
+      sb.append("<body>\n");
+      sb.append("<h2>Medhod is:");
+      sb.append("</body>\n");
+      sb.append("</html>\n");
+      response = sb.toString();   
+      response += "<br>"+"URI:"+he.getRequestURI();
+      
+      Scanner scan = new Scanner(he.getRequestBody());
+      while(scan.hasNext()){
+      sb.append("Request body, with Post-parameters: "+scan.nextLine());
+      sb.append("</br>");
+      }
+      Headers h = he.getResponseHeaders();//getRequestMethod();
       h.add("Content-Type", "text/html");
       
       he.sendResponseHeaders(200, response.length());
