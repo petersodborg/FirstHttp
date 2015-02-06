@@ -1,5 +1,4 @@
 package firsthttpserver;
-
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -11,8 +10,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.Scanner;
-
 /**
  * @author Peter Christensen
  */
@@ -31,19 +30,40 @@ public class FirstHtttpServer {
     server.createContext("/pages", new RequestHandlerHandle());
     server.createContext("/headers", new RequestHandlerHeaders());
     server.createContext("/parameters", new RequestHandlerParameter());
+    server.createContext("/url", new RequestHandlerHandleOpg5());
     server.setExecutor(null); // Use the default executor
     server.start();
     System.out.println("Server started, listening on port: "+port);
   }
-  
-  
-  
     //Opgave 3
-    static class RequestHandlerHandle implements HttpHandler {
+     static class RequestHandlerHandle implements HttpHandler {
     String contentFolder = "public/";
     
     public void handle(HttpExchange he) throws IOException {
+    
     File file = new File(contentFolder+"index.html");
+    byte[] bytesToSend = new byte[(int) file.length()];
+    try {
+    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+    bis.read(bytesToSend, 0, bytesToSend.length);
+    } catch (IOException ie) {
+    ie.printStackTrace();
+    }
+    he.sendResponseHeaders(200, bytesToSend.length);
+    try (OutputStream os = he.getResponseBody()) {
+    os.write(bytesToSend, 0, bytesToSend.length);
+    }
+   }
+ }
+  
+    static class RequestHandlerHandleOpg5 implements HttpHandler {
+    String contentFolder = "public/";
+    
+    public void handle(HttpExchange he) throws IOException {
+    
+    String url = he.getRequestURI().toString();
+    url = url.substring(5);
+    File file = new File(contentFolder+ url);
     byte[] bytesToSend = new byte[(int) file.length()];
     try {
     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
